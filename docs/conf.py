@@ -63,10 +63,7 @@ class DocSection:
     processors: Tuple[Callable, ...] = ()
 
     def get_out_filename(self) -> str:
-        if not self.out_filename:
-            return self.name + ".md"
-        else:
-            return self.out_filename
+        return f"{self.name}.md" if not self.out_filename else self.out_filename
 
 
 def make_pypi_svg(version: str) -> None:
@@ -86,7 +83,7 @@ def make_filename(line: str) -> str:
         filename = filename[1:]
     if filename.endswith("_"):
         filename = filename[:-1]
-    return filename + ".md"
+    return f"{filename}.md"
 
 
 def get_contents(section: DocSection) -> str:
@@ -96,9 +93,11 @@ def get_contents(section: DocSection) -> str:
     start_line: int = section.src_range.start_line
     end_line: int = section.src_range.end_line
     with open(src, "r", encoding="utf-8") as f:
-        for lineno, line in enumerate(f, start=1):
-            if lineno >= start_line and lineno < end_line:
-                contents.append(line)
+        contents.extend(
+            line
+            for lineno, line in enumerate(f, start=1)
+            if lineno >= start_line and lineno < end_line
+        )
     result = "".join(contents)
     # Let's make Prettier happy with the amount of trailing newlines in the sections.
     if result.endswith("\n\n"):
